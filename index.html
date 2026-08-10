@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Laberinto RL · Aprendizaje por Refuerzo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,400,0,0" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-mark material-symbols-outlined">grid_on</span>
+      <div class="brand-text">
+        <h1>Laberinto RL</h1>
+        <p>Un agente que aprende por prueba y error, en tiempo real</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="btn-info-toggle" class="btn btn-ghost" title="¿Qué estoy viendo?">
+        <span class="material-symbols-outlined">info</span>
+        <span>Qué es esto</span>
+      </button>
+    </div>
+  </header>
+
+  <section id="panel-info" class="info-panel hidden">
+    <div class="info-grid">
+      <div class="info-card">
+        <h3>¿Qué está haciendo el agente?</h3>
+        <p>El agente intenta llegar a la meta. Al principio se mueve casi al azar. Cada vez que recibe una recompensa o un castigo, ajusta su criterio para actuar con más precisión.</p>
+      </div>
+      <div class="info-card">
+        <h3>¿Qué es un episodio?</h3>
+        <p>Un episodio es un intento completo, desde el inicio hasta que el agente llega a la meta, cae en una trampa, o se queda sin pasos.</p>
+      </div>
+      <div class="info-card">
+        <h3>¿Qué es Q-Learning?</h3>
+        <p>Es un método simple: el agente guarda, para cada casillero, qué tan buena le parece cada dirección posible. Con la experiencia, esos valores se ajustan de forma automática.</p>
+      </div>
+      <div class="info-card">
+        <h3>¿Qué significa ε (epsilon)?</h3>
+        <p>Es la probabilidad de que el agente pruebe algo nuevo en vez de usar lo que ya aprendió. Empieza alto y baja con el tiempo.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="editor-bar" id="editor-bar">
+    <div class="editor-tools">
+      <span class="editor-label">Herramienta:</span>
+      <button class="tool-btn active" data-tool="wall"><span class="material-symbols-outlined">density_medium</span><span>Pared</span></button>
+      <button class="tool-btn" data-tool="trap"><span class="material-symbols-outlined">warning</span><span>Trampa</span></button>
+      <button class="tool-btn" data-tool="agent"><span class="material-symbols-outlined">smart_toy</span><span>Agente</span></button>
+      <button class="tool-btn" data-tool="goal"><span class="material-symbols-outlined">flag</span><span>Meta</span></button>
+      <button class="tool-btn" data-tool="erase"><span class="material-symbols-outlined">delete</span><span>Borrar</span></button>
+    </div>
+    <div class="editor-validation" id="editor-validation"></div>
+    <button id="btn-start-training" class="btn btn-primary btn-big"><span class="material-symbols-outlined">play_arrow</span><span>Comenzar aprendizaje</span></button>
+  </section>
+
+  <main class="app-main">
+
+    <section class="panel panel-maze">
+      <div class="panel-header">
+        <h2><span class="section-icon material-symbols-outlined">grid_view</span>Laberinto</h2>
+        <button id="btn-edit-maze" class="btn btn-ghost hidden">
+          <span class="material-symbols-outlined">edit</span>
+          <span>Editar</span>
+        </button>
+      </div>
+      <div id="maze-board" class="maze-board" aria-label="Tablero del laberinto"></div>
+      <div class="maze-legend">
+        <span><i class="swatch swatch-wall"></i>Pared</span>
+        <span><i class="swatch swatch-trap"></i>Trampa</span>
+        <span><i class="swatch swatch-start"></i>Inicio</span>
+        <span><i class="swatch swatch-goal"></i>Meta</span>
+        <span><i class="swatch swatch-agent"></i>Agente</span>
+      </div>
+    </section>
+
+    <section class="panel panel-controls">
+      <h2><span class="section-icon material-symbols-outlined">tune</span>Control de aprendizaje</h2>
+      <div class="controls-row">
+        <button id="btn-play" class="btn btn-primary" disabled><span class="material-symbols-outlined">play_arrow</span>Iniciar</button>
+        <button id="btn-pause" class="btn btn-secondary" disabled><span class="material-symbols-outlined">pause</span>Pausar</button>
+        <button id="btn-reset" class="btn btn-secondary" disabled><span class="material-symbols-outlined">restart_alt</span>Reiniciar</button>
+        <button id="btn-new-maze" class="btn btn-ghost"><span class="material-symbols-outlined">delete_sweep</span>Nuevo laberinto</button>
+      </div>
+      <div class="speed-row">
+        <label for="speed-slider">Velocidad</label>
+        <input type="range" id="speed-slider" min="0" max="4" step="1" value="2">
+        <span id="speed-label">Normal</span>
+      </div>
+      <div class="toggles-row">
+        <label><input type="checkbox" id="toggle-nn" checked> Mostrar red neuronal</label>
+        <label><input type="checkbox" id="toggle-qtable" checked> Mostrar tabla Q</label>
+        <label><input type="checkbox" id="toggle-arrows" checked> Mostrar mejores acciones</label>
+      </div>
+      <div class="decision-box" id="decision-box">
+        <div class="decision-tag" id="decision-tag">— Esperando inicio —</div>
+        <div class="decision-detail" id="decision-detail">Estado: — &nbsp;→&nbsp; Acción: — &nbsp;→&nbsp; Recompensa: — &nbsp;→&nbsp; Nuevo estado: —</div>
+      </div>
+    </section>
+
+    <section class="panel panel-metrics">
+      <h2><span class="section-icon material-symbols-outlined">insights</span>Aprendizaje</h2>
+      <div class="metrics-grid">
+        <div class="metric"><span class="metric-value" id="m-episode">0</span><span class="metric-label">Episodio</span></div>
+        <div class="metric"><span class="metric-value" id="m-steps">0</span><span class="metric-label">Pasos</span></div>
+        <div class="metric"><span class="metric-value" id="m-reward">0</span><span class="metric-label">Recompensa</span></div>
+        <div class="metric"><span class="metric-value" id="m-epsilon">1.00</span><span class="metric-label">ε exploración</span></div>
+        <div class="metric"><span class="metric-value" id="m-alpha">0.10</span><span class="metric-label">α aprendizaje</span></div>
+        <div class="metric"><span class="metric-value" id="m-gamma">0.90</span><span class="metric-label">γ descuento</span></div>
+        <div class="metric"><span class="metric-value" id="m-wins">0</span><span class="metric-label">Llegadas a meta</span></div>
+        <div class="metric"><span class="metric-value" id="m-success">0%</span><span class="metric-label">% de éxito</span></div>
+        <div class="metric"><span class="metric-value" id="m-best">—</span><span class="metric-label">Mejor pasos</span></div>
+      </div>
+      <div class="charts-row">
+        <div class="chart-box">
+          <h4>Recompensa por episodio</h4>
+          <canvas id="chart-reward" width="300" height="110"></canvas>
+        </div>
+        <div class="chart-box">
+          <h4>Pasos por episodio</h4>
+          <canvas id="chart-steps" width="300" height="110"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel-nn" id="panel-nn">
+      <h2><span class="section-icon material-symbols-outlined">schema</span>Visualización de decisión</h2>
+      <p class="disclaimer">Esto es una representación visual educativa de cómo podría verse una decisión. El algoritmo que verdaderamente aprende en este proyecto es <strong>Q-Learning</strong>.</p>
+      <svg id="nn-svg" viewBox="0 0 480 260" class="nn-svg"></svg>
+    </section>
+
+    <section class="panel panel-qtable" id="panel-qtable">
+      <h2><span class="section-icon material-symbols-outlined">table_chart</span>Tabla Q</h2>
+      <p class="disclaimer">Valores que el agente aprendió para el estado actual. Cuanto más intenso el color, mejor le parece la acción.</p>
+      <div id="qtable-current" class="qtable-current"></div>
+      <p class="disclaimer small">Estado actual: <span id="qtable-state">—</span></p>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>Proyecto educativo de Aprendizaje por Refuerzo · Q-Learning tabular · Hecho para explicar, no para impresionar.</p>
+    <div class="qr-section">
+      <div id="qr-code"></div>
+      <p id="qr-help">Generando QR para abrir el juego desde tu celular…</p>
+    </div>
+  </footer>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="js/maze.js"></script>
+  <script src="js/agent.js"></script>
+  <script src="js/qlearning.js"></script>
+  <script src="js/neuralNetworkView.js"></script>
+  <script src="js/metrics.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/qrcode.js"></script>
+</body>
+</html>
