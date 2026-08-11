@@ -42,12 +42,16 @@
 
     if (window.QRCode) {
       container.innerHTML = '';
+      container.style.background = '#ffffff';
+      container.style.padding = '16px';
+      container.style.display = 'inline-block';
+      container.style.boxSizing = 'content-box';
       new window.QRCode(container, {
         text: url,
-        width: 180,
-        height: 180,
-        colorDark: '#ffffff',
-        colorLight: '#0f1427',
+        width: 240,
+        height: 240,
+        colorDark: '#000000',
+        colorLight: '#ffffff',
         correctLevel: window.QRCode.CorrectLevel.H,
       });
       return;
