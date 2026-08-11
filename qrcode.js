@@ -109,7 +109,7 @@
   async function init() {
     const url = window.location.href && window.location.href !== 'about:blank'
       ? await resolveReachableUrl()
-      : 'https://tu-dominio.com';
+      : 'https://matiassiles.github.io/Aprendizaje-por-Refuerzo/';
     renderQr(url);
   }
 
