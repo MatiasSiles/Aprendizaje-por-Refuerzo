@@ -12,7 +12,7 @@
    - Recompensa (r): número que premia o castiga el movimiento.
    - Exploración vs explotación: a veces prueba algo nuevo (ε), a veces
      usa lo que ya sabe.
-   ========================================================================== */
+   ========================================================================== 
 
 const ACTIONS = ['up', 'down', 'left', 'right'];
 
@@ -116,4 +116,207 @@ const QLearning = {
   decayEpsilon() {
     this.epsilon = Math.max(this.epsilonMin, this.epsilon * this.epsilonDecay);
   },
+}; */
+
+/* ==========================================================================
+   qlearning.js
+   Implementación de Q-Learning para un agente individual.
+   ========================================================================== */
+
+const ACTIONS = ['up', 'down', 'left', 'right'];
+
+const REWARDS = {
+  GOAL: 100,
+  MOVE: -1,
+  WALL_HIT: -5,
+  TRAP: -50,
 };
+
+const MAX_STEPS_PER_EPISODE = 200;
+
+
+class QLearningModel {
+
+  constructor(agent) {
+    this.agent = agent;
+
+    this.qTable = {};
+
+    this.alpha = 0.1;
+    this.gamma = 0.9;
+
+    this.epsilon = 1.0;
+    this.epsilonMin = 0.05;
+    this.epsilonDecay = 0.985;
+  }
+
+
+  reset() {
+    this.qTable = {};
+    this.epsilon = 1.0;
+  }
+
+
+  stateKey(pos) {
+    return `${pos.x},${pos.y}`;
+  }
+
+
+  getQ(pos) {
+    const key = this.stateKey(pos);
+
+    if (!this.qTable[key]) {
+      this.qTable[key] = [0, 0, 0, 0];
+    }
+
+    return this.qTable[key];
+  }
+
+
+  chooseAction(pos) {
+    const q = this.getQ(pos);
+
+    const explore = Math.random() < this.epsilon;
+
+    if (explore) {
+      const idx = Math.floor(Math.random() * ACTIONS.length);
+
+      return {
+        actionIdx: idx,
+        wasExploration: true,
+      };
+    }
+
+    const max = Math.max(...q);
+
+    const bestIndices = q
+      .map((value, index) => value === max ? index : -1)
+      .filter(index => index !== -1);
+
+    const idx =
+      bestIndices[Math.floor(Math.random() * bestIndices.length)];
+
+    return {
+      actionIdx: idx,
+      wasExploration: false,
+    };
+  }
+
+
+  step() {
+
+    const prevPos = { ...this.agent.pos };
+
+    const {
+      actionIdx,
+      wasExploration
+    } = this.chooseAction(prevPos);
+
+    const target = this.agent.getTargetCell(actionIdx);
+
+    let reward;
+    let done;
+    let outcome;
+    let nextPos;
+
+
+    if (Maze.isWall(target.x, target.y)) {
+
+      reward = REWARDS.WALL_HIT;
+
+      done = false;
+
+      outcome = 'wall';
+
+      nextPos = prevPos;
+
+    } else if (Maze.isGoal(target.x, target.y)) {
+
+      reward = REWARDS.GOAL;
+
+      done = true;
+
+      outcome = 'goal';
+
+      nextPos = target;
+
+    } else if (Maze.isTrap(target.x, target.y)) {
+
+      reward = REWARDS.TRAP;
+
+      done = true;
+
+      outcome = 'trap';
+
+      nextPos = target;
+
+    } else {
+
+      reward = REWARDS.MOVE;
+
+      done = false;
+
+      outcome = 'move';
+
+      nextPos = target;
+    }
+
+
+    // Actualización Q-Learning
+
+    const qPrev = this.getQ(prevPos);
+
+    const qNext = this.getQ(nextPos);
+
+    const maxNext = Math.max(...qNext);
+
+    qPrev[actionIdx] =
+      qPrev[actionIdx] +
+      this.alpha *
+      (
+        reward +
+        this.gamma * maxNext -
+        qPrev[actionIdx]
+      );
+
+
+    this.agent.pos = { ...nextPos };
+
+
+    if (done) {
+      this.agent.active = false;
+    }
+
+
+    return {
+      agentId: this.agent.id,
+
+      prevPos,
+      nextPos,
+
+      actionIdx,
+      wasExploration,
+
+      reward,
+      done,
+      outcome,
+
+      epsilon: this.epsilon,
+    };
+  }
+
+
+  decayEpsilon() {
+    this.epsilon =
+      Math.max(
+        this.epsilonMin,
+        this.epsilon * this.epsilonDecay
+      );
+  }
+}
+
+
+/*
+ * Compatibilidad con el modo de un solo agente.
+ */
+const QLearning = new QLearningModel(Agent);

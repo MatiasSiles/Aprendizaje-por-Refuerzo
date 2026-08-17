@@ -21,7 +21,7 @@
       </div>
     </div>
     <div class="header-actions">
-      <button id="btn-info-toggle" class="btn btn-ghost" title="¿Qué estoy viendo?">
+      <button id="btn-info-toggle" class="btn btn-ghost" title="¿Qué estoy viendo?" aria-expanded="false" aria-controls="panel-info">
         <span class="material-symbols-outlined">info</span>
         <span>Qué es esto</span>
       </button>
@@ -30,6 +30,10 @@
 
   <section id="panel-info" class="info-panel hidden">
     <div class="info-grid">
+      <div class="info-card">
+        <h3>¿Cuál es el objetivo?</h3>
+        <p>El agente debe encontrar el camino desde el inicio hasta la meta evitando paredes y trampas. Aprende mediante intentos sucesivos y mejora su estrategia con la experiencia.</p>
+      </div>
       <div class="info-card">
         <h3>¿Qué está haciendo el agente?</h3>
         <p>El agente intenta llegar a la meta. Al principio se mueve casi al azar. Cada vez que recibe una recompensa o un castigo, ajusta su criterio para actuar con más precisión.</p>
@@ -43,8 +47,16 @@
         <p>Es un método simple: el agente guarda, para cada casillero, qué tan buena le parece cada dirección posible. Con la experiencia, esos valores se ajustan de forma automática.</p>
       </div>
       <div class="info-card">
+        <h3>¿Cómo aprende?</h3>
+        <p>Llegar a la meta da una recompensa positiva, moverse cuesta un poco y caer en una trampa o chocar con una pared recibe una penalización. Así aprende qué decisiones convienen.</p>
+      </div>
+      <div class="info-card">
         <h3>¿Qué significa ε (epsilon)?</h3>
         <p>Es la probabilidad de que el agente pruebe algo nuevo en vez de usar lo que ya aprendió. Empieza alto y baja con el tiempo.</p>
+      </div>
+      <div class="info-card">
+        <h3>¿Qué puedes observar?</h3>
+        <p>La tabla Q muestra los valores aprendidos, las métricas resumen el progreso y las flechas señalan las acciones que el agente considera mejores. Puedes ajustar la velocidad y observar varios agentes.</p>
       </div>
     </div>
   </section>
@@ -67,10 +79,6 @@
     <section class="panel panel-maze">
       <div class="panel-header">
         <h2><span class="section-icon material-symbols-outlined">grid_view</span>Laberinto</h2>
-        <button id="btn-edit-maze" class="btn btn-ghost hidden">
-          <span class="material-symbols-outlined">edit</span>
-          <span>Editar</span>
-        </button>
       </div>
       <div id="maze-board" class="maze-board" aria-label="Tablero del laberinto"></div>
       <div class="maze-legend">
@@ -95,39 +103,15 @@
         <input type="range" id="speed-slider" min="0" max="4" step="1" value="2">
         <span id="speed-label">Normal</span>
       </div>
+      <div class="agent-count-row">
+        <label for="agent-count">Agentes visibles</label>
+        <input type="range" id="agent-count" min="0" max="8" step="1" value="1">
+        <span id="agent-count-label">1</span>
+      </div>
       <div class="toggles-row">
         <label><input type="checkbox" id="toggle-nn" checked> Mostrar red neuronal</label>
         <label><input type="checkbox" id="toggle-qtable" checked> Mostrar tabla Q</label>
         <label><input type="checkbox" id="toggle-arrows" checked> Mostrar mejores acciones</label>
-      </div>
-      <div class="decision-box" id="decision-box">
-        <div class="decision-tag" id="decision-tag">— Esperando inicio —</div>
-        <div class="decision-detail" id="decision-detail">Estado: — &nbsp;→&nbsp; Acción: — &nbsp;→&nbsp; Recompensa: — &nbsp;→&nbsp; Nuevo estado: —</div>
-      </div>
-    </section>
-
-    <section class="panel panel-metrics">
-      <h2><span class="section-icon material-symbols-outlined">insights</span>Aprendizaje</h2>
-      <div class="metrics-grid">
-        <div class="metric"><span class="metric-value" id="m-episode">0</span><span class="metric-label">Episodio</span></div>
-        <div class="metric"><span class="metric-value" id="m-steps">0</span><span class="metric-label">Pasos</span></div>
-        <div class="metric"><span class="metric-value" id="m-reward">0</span><span class="metric-label">Recompensa</span></div>
-        <div class="metric"><span class="metric-value" id="m-epsilon">1.00</span><span class="metric-label">ε exploración</span></div>
-        <div class="metric"><span class="metric-value" id="m-alpha">0.10</span><span class="metric-label">α aprendizaje</span></div>
-        <div class="metric"><span class="metric-value" id="m-gamma">0.90</span><span class="metric-label">γ descuento</span></div>
-        <div class="metric"><span class="metric-value" id="m-wins">0</span><span class="metric-label">Llegadas a meta</span></div>
-        <div class="metric"><span class="metric-value" id="m-success">0%</span><span class="metric-label">% de éxito</span></div>
-        <div class="metric"><span class="metric-value" id="m-best">—</span><span class="metric-label">Mejor pasos</span></div>
-      </div>
-      <div class="charts-row">
-        <div class="chart-box">
-          <h4>Recompensa por episodio</h4>
-          <canvas id="chart-reward" width="300" height="110"></canvas>
-        </div>
-        <div class="chart-box">
-          <h4>Pasos por episodio</h4>
-          <canvas id="chart-steps" width="300" height="110"></canvas>
-        </div>
       </div>
     </section>
 
@@ -137,12 +121,50 @@
       <svg id="nn-svg" viewBox="0 0 480 260" class="nn-svg"></svg>
     </section>
 
-    <section class="panel panel-qtable" id="panel-qtable">
-      <h2><span class="section-icon material-symbols-outlined">table_chart</span>Tabla Q</h2>
-      <p class="disclaimer">Valores que el agente aprendió para el estado actual. Cuanto más intenso el color, mejor le parece la acción.</p>
-      <div id="qtable-current" class="qtable-current"></div>
-      <p class="disclaimer small">Estado actual: <span id="qtable-state">—</span></p>
+    <section class="panel panel-state">
+      <h2><span class="section-icon material-symbols-outlined">track_changes</span>Estado del agente</h2>
+      <div class="decision-box" id="decision-box">
+        <div class="decision-tag" id="decision-tag">— Esperando inicio —</div>
+        <div class="decision-detail" id="decision-detail">Estado: — &nbsp;→&nbsp; Acción: — &nbsp;→&nbsp; Recompensa: — &nbsp;→&nbsp; Nuevo estado: —</div>
+      </div>
     </section>
+
+    <details class="learning-secondary">
+      <summary><span class="material-symbols-outlined">expand_more</span>Información del aprendizaje</summary>
+      <div class="secondary-grid">
+        <section class="panel panel-metrics">
+          <h2><span class="section-icon material-symbols-outlined">insights</span>Métricas y gráficos</h2>
+          <div class="metrics-grid">
+            <div class="metric"><span class="metric-value" id="m-episode">0</span><span class="metric-label">Episodio</span></div>
+            <div class="metric"><span class="metric-value" id="m-steps">0</span><span class="metric-label">Pasos</span></div>
+            <div class="metric"><span class="metric-value" id="m-reward">0</span><span class="metric-label">Recompensa</span></div>
+            <div class="metric"><span class="metric-value" id="m-epsilon">1.00</span><span class="metric-label">ε exploración</span></div>
+            <div class="metric"><span class="metric-value" id="m-alpha">0.10</span><span class="metric-label">α aprendizaje</span></div>
+            <div class="metric"><span class="metric-value" id="m-gamma">0.90</span><span class="metric-label">γ descuento</span></div>
+            <div class="metric"><span class="metric-value" id="m-wins">0</span><span class="metric-label">Llegadas a meta</span></div>
+            <div class="metric"><span class="metric-value" id="m-success">0%</span><span class="metric-label">% de éxito</span></div>
+            <div class="metric"><span class="metric-value" id="m-best">—</span><span class="metric-label">Mejor pasos</span></div>
+          </div>
+          <div class="charts-row">
+            <div class="chart-box">
+              <h4>Recompensa por episodio</h4>
+              <canvas id="chart-reward" width="300" height="110"></canvas>
+            </div>
+            <div class="chart-box">
+              <h4>Pasos por episodio</h4>
+              <canvas id="chart-steps" width="300" height="110"></canvas>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel panel-qtable" id="panel-qtable">
+          <h2><span class="section-icon material-symbols-outlined">table_chart</span>Tabla Q</h2>
+          <p class="disclaimer">Valores aprendidos para el estado actual.</p>
+          <div id="qtable-current" class="qtable-current"></div>
+          <p class="disclaimer small">Estado actual: <span id="qtable-state">—</span></p>
+        </section>
+      </div>
+    </details>
 
   </main>
 
@@ -161,6 +183,7 @@
   <script src="qlearning.js"></script>
   <script src="neuralNetworkView.js"></script>
   <script src="metrics.js"></script>
+  <script src="animations.js"></script>
   <script src="main.js"></script>
   <script src="qrcode.js"></script>
 </body>
